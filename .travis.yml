@@ -1,0 +1,31 @@
+language: node_js
+node_js:
+  - "11.0.0"
+
+deploy_service_job: &DEPLOY_SERVICE_JOB
+  cache:
+    directories:
+      - node_modules
+      - ${SERVICE_PATH}/node_modules
+
+  install:
+    - npm install -g serverless@1.74.1
+    - cd ${SERVICE_PATH}
+    - travis_retry npm install
+    - cd -
+
+  script:
+    - cd ${SERVICE_PATH}
+    - bash deploy.sh
+    - cd -
+
+jobs:
+  include:
+    - <<: *DEPLOY_SERVICE_JOB
+      name: "Deploy Frontend service"
+      env:
+        - SERVICE_PATH="client"
+    - <<: *DEPLOY_SERVICE_JOB
+      name: "Deploy backend service"
+      env:
+        - SERVICE_PATH="backend"

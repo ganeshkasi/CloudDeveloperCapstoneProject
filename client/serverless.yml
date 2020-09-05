@@ -1,0 +1,44 @@
+service:
+  name: udacity-capstone-frontend
+
+provider:
+    name: aws
+    runtime: nodejs12.x
+    region: us-east-1
+
+    environment:
+        STAGE: prod
+        API_ID: rsbrw5is16
+
+plugins:
+    - serverless-s3-sync
+
+custom:
+    bucketName: udacity-capstone-frontend-s3-bucket-jmanzano
+    s3Sync:
+        - bucketName: ${self:custom.bucketName}
+          localDir: build/
+
+resources:
+    Resources:
+        ReactAppBucket:
+            Type: AWS::S3::Bucket
+            Properties:
+                BucketName: ${self:custom.bucketName}
+                AccessControl: PublicRead
+                WebsiteConfiguration:
+                    IndexDocument: index.html
+                    ErrorDocument: index.html
+        S3AccessPolicy:
+            Type: AWS::S3::BucketPolicy
+            Properties:
+                Bucket:
+                    Ref: ReactAppBucket
+                PolicyDocument:
+                    Statement:
+                        - Sid: PublicReadGetObject
+                          Effect: Allow
+                          Principal: '*'
+                          Action:
+                              - s3:GetObject
+                          Resource: arn:aws:s3:::${self:custom.bucketName}/*
